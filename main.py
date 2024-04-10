@@ -10,7 +10,7 @@ class Task:
         return f"id: {self.id} | {[time for time in self.tpm]}"
 
 
-def readData(filepath: str) -> dict[str: List[str]]:
+def readData(filepath: str) -> dict[str: List[Task]]:
     """
     Reads data from a file with sections defined by "data.XXX" lines.
 
@@ -47,10 +47,26 @@ def readData(filepath: str) -> dict[str: List[str]]:
     return data
 
 
+def getTotalTime(data):
+    N_tasks = len(data)
+    N_machines = len(data[0].tpm)
+    Cmax = 0
+    machine_free_at = [0] * N_machines
+    for task in data:
+        t = 0
+        for m in range(N_machines):
+            task_time = task.tpm[m]
+            Cmax = max(machine_free_at[m], t) + task_time
+            t = Cmax
+            machine_free_at[m] = Cmax
+    return Cmax
+
+
 def main():
     data = readData("data/data.txt")
     data = data["data.000"]
     print(data)
+    print(getTotalTime(data))
 
 if __name__ == "__main__":
     main()
