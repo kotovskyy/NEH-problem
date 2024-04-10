@@ -1,5 +1,6 @@
 from typing import List
-
+import numpy as np
+import math
 
 class Task:
     def __init__(self, id: int, tpm: List[int]) -> None:
@@ -48,7 +49,6 @@ def readData(filepath: str) -> dict[str: List[Task]]:
 
 
 def getTotalTime(data):
-    N_tasks = len(data)
     N_machines = len(data[0].tpm)
     Cmax = 0
     machine_free_at = [0] * N_machines
@@ -61,12 +61,44 @@ def getTotalTime(data):
             machine_free_at[m] = Cmax
     return Cmax
 
+def _getTasksTotals(data):
+    totalTimes = []
+    for i, task in enumerate(data):
+        totalTimes.append([i, sum(task.tpm)])
+    return sorted(totalTimes, key=lambda x: x[1], reverse=True)
+
+def NEH(data):
+    data = np.asarray(data)
+    task_totals = _getTasksTotals(data)
+    order = []
+    for t in task_totals:
+        C_max = math.inf
+        index = None
+        N_in_order = len(order)
+        for i in range(N_in_order+1):
+            order.insert(i, t[0])
+            c = getTotalTime(data[order])
+            if c < C_max:
+                C_max = c
+                index = i
+            order.pop(i)
+        order.insert(index, t[0])
+    
+    return order
+
+
+def printOrder(order):
+    print(" ".join([str(i+1) for i in order]))
+
 
 def main():
     data = readData("data/data.txt")
-    data = data["data.000"]
-    print(data)
-    print(getTotalTime(data))
+    dataName = "data.000"
+    data = data[dataName]
+    order = NEH(data)
+    print(f"DATASET : {dataName}")
+    print(f"Min Cmax: {getTotalTime(np.asarray(data)[order])}")
+    printOrder(order)
 
 if __name__ == "__main__":
     main()
