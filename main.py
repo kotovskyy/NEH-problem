@@ -62,43 +62,57 @@ def getTotalTime(data):
     return Cmax
 
 def _getTasksTotals(data):
-    totalTimes = []
-    for i, task in enumerate(data):
-        totalTimes.append([i, sum(task.tpm)])
-    return sorted(totalTimes, key=lambda x: x[1], reverse=True)
+    return sorted([[i, sum(task.tpm)] for i, task in enumerate(data)], key=lambda x: x[1], reverse=True)
 
+def calculate_time(func):
+    """
+        Decorator to calculate total execution time of a function.
+    """
+    def inner(*args, **kwargs):
+        import time
+        start = time.time()
+        order = func(*args, **kwargs)
+        end = time.time()
+        totalTime = end - start
+        print(f"Execution time: {totalTime:.3} s")
+        return order
+        
+    return inner
+
+
+@calculate_time
 def NEH(data):
     data = np.asarray(data)
     task_totals = _getTasksTotals(data)
-    order = []
+    order, index = [], None
+    
     for t in task_totals:
         C_max = math.inf
-        index = None
-        N_in_order = len(order)
-        for i in range(N_in_order+1):
-            order.insert(i, t[0])
-            c = getTotalTime(data[order])
+        for i in range(len(order)+1):
+            new_order = order[:i] + [t[0]] + order[i:]
+            c = getTotalTime(data[new_order])
             if c < C_max:
-                C_max = c
-                index = i
-            order.pop(i)
+                C_max, index = c, i
         order.insert(index, t[0])
-    
     return order
 
 
 def printOrder(order):
-    print(" ".join([str(i+1) for i in order]))
+    print("Order: " + " ".join([str(i+1) for i in order]))
 
 
-def main():
-    data = readData("data/data.txt")
-    dataName = "data.000"
-    data = data[dataName]
+def testSolution(data, datasetName: str) -> None:
+    data = data[datasetName]
+    print(f"DATASET : {datasetName}")
     order = NEH(data)
-    print(f"DATASET : {dataName}")
     print(f"Min Cmax: {getTotalTime(np.asarray(data)[order])}")
     printOrder(order)
 
+
+def main():
+    dataName = "data.001"
+    data = readData("data/data.txt")
+    testSolution(data, dataName)
+    
 if __name__ == "__main__":
     main()
