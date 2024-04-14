@@ -110,7 +110,7 @@ def QNEHTotalTime(task, forward, backward, N, M, i):
         task_table[m, 0] = Cmax
     result = np.hstack((forward[:, :i], task_table, backward[:, i:]))
     
-    return max(result[:, i] + result[:, i+1]) if i < N else max(result[:, i])
+    return np.max(result[:, i] + result[:, i+1]) if i < N else np.max(result[:, i])
 
 
 def _getTasksTotals(data):
@@ -122,9 +122,9 @@ def QNEH(data):
     data = np.asarray(data)
     task_totals = _getTasksTotals(data)
     order, index = [], None
-    N, M = len(order), len(data[0].tpm)
-    
+    M = len(data[0].tpm)
     for t in task_totals:
+        N = len(order) 
         C_max = math.inf
         forward = _createCmaxTable(data[order], N, M, False)
         backward = _createCmaxTable(data[order], N, M, True)
@@ -137,7 +137,6 @@ def QNEH(data):
     
 @calculate_time
 def NEH(data):
-    data = np.asarray(data)
     task_totals = _getTasksTotals(data)
     order, index = [], None
     
@@ -157,10 +156,10 @@ def printOrder(order):
 
 
 def testSolution(data, datasetName: str, func) -> None:
-    data = data[datasetName]
+    data = np.asarray(data[datasetName])
     print(f"DATASET : {datasetName}")
     order = func(data)
-    print(f"Min Cmax: {getTotalTime(np.asarray(data)[order])}")
+    print(f"Min Cmax: {getTotalTime(data[order])}")
     printOrder(order)
 
 
