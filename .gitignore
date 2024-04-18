@@ -6,6 +6,7 @@ __pycache__/
 test.py
 .vscode/
 neh
+a.out
 # C extensions
 *.so
 
