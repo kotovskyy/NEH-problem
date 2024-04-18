@@ -3,6 +3,8 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <algorithm>
+#include <numeric>
 
 class Task {
 private:
@@ -89,15 +91,31 @@ std::vector<std::vector<Task>> readData(const std::string& filepath) {
     return datasets;
 }
 
+std::vector<int> getTaskInputOrder(const std::vector<Task>& data) {
+  // Sort the data in descending order based on the sum of tpm elements
+  std::vector<Task> sorted_data = data;
+  std::sort(sorted_data.begin(), sorted_data.end(), [](const Task& a, const Task& b) {
+    return std::accumulate(a.getTpm().begin(), a.getTpm().end(), 0) > 
+           std::accumulate(b.getTpm().begin(), b.getTpm().end(), 0);
+  });
 
+  std::vector<int> order;
+
+  std::transform(sorted_data.begin(), sorted_data.end(), std::back_inserter(order), [](const Task& t) {
+    return t.getId() - 1;
+  });
+
+  return order;
+}
 
 int main() {
     std::string filepath = "data/data.txt";
     std::vector<std::vector<Task>> datasets = readData(filepath);
-    int dataset_index = 120;
-    for (auto task : datasets[dataset_index]) {
-        task.printTask();
-    }
+    int dataset_index = 1;
+    std::vector<Task> data = datasets[dataset_index];
+
+    std::vector<int> order = getTaskInputOrder(data);
+
 
     return 0;
 }
