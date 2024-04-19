@@ -252,6 +252,30 @@ int getTotalTime(const std::vector<Task>& data, const std::vector<int>& order){
     return cmax;
 }
 
+std::vector<int> NEH(const std::vector<Task>& data) {
+    std::vector<int> input_order = getTaskInputOrder(data);
+    std::vector<int> order;
+    int N_tasks = data.size();
+    int M = data[0].getTpm().size();
+    int index = 0;
+
+    for (int t_index : input_order) {
+        int N = order.size();
+        int C_max = std::numeric_limits<int>::max();
+        for (int i = 0; i < N+1; i++){
+            std::vector<int> new_order = order;
+            new_order.insert(new_order.begin() + i, t_index);
+            int c = getTotalTime(data, new_order);
+            if (c < C_max) {
+                C_max = c;
+                index = i;
+            }
+        }
+        order.insert(order.begin() + index, t_index);
+    }
+    return order;
+}
+
 void testSingle(int data_index, const std::vector<Task>& data, std::chrono::duration<double>& total_time, std::function<std::vector<int>(const std::vector<Task>&)> algorithm) {
     printf("data.%03d : ", data_index);
     auto start = std::chrono::high_resolution_clock::now();
@@ -275,9 +299,11 @@ void testMultiple(int data_index_from, int data_index_to, const std::vector<std:
 int main() {
     std::string filepath = "data/data.txt";
     std::vector<std::vector<Task>> datasets = readData(filepath);
-    int data_from = 0;
-    int data_to = 10;
+    int data_from = 110;
+    int data_to = 120;
     std::cout << "QNEH Results" << std::endl;
     testMultiple(data_from, data_to, datasets, QNEH);
+    std::cout << "NEH Results" << std::endl;
+    testMultiple(data_from, data_to, datasets, NEH);
     return 0;
 }
