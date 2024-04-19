@@ -252,10 +252,10 @@ int getTotalTime(const std::vector<Task>& data, const std::vector<int>& order){
     return cmax;
 }
 
-void testSingle(int data_index, const std::vector<Task>& data, std::chrono::duration<double>& total_time) {
+void testSingle(int data_index, const std::vector<Task>& data, std::chrono::duration<double>& total_time, std::function<std::vector<int>(const std::vector<Task>&)> algorithm) {
     printf("data.%03d : ", data_index);
     auto start = std::chrono::high_resolution_clock::now();
-    std::vector<int> result = QNEH(data);
+    std::vector<int> result = algorithm(data);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end-start;
     
@@ -264,10 +264,10 @@ void testSingle(int data_index, const std::vector<Task>& data, std::chrono::dura
     std::cout << duration.count() << " s"<< std::endl;
 }
 
-void testMultiple(int data_index_from, int data_index_to, const std::vector<std::vector<Task>>& datasets) {
+void testMultiple(int data_index_from, int data_index_to, const std::vector<std::vector<Task>>& datasets, std::function<std::vector<int>(const std::vector<Task>&)> algorithm) {
     std::chrono::duration<double> total_time = std::chrono::duration<double>::zero();
     for (int i = data_index_from; i <= data_index_to; i++) {
-        testSingle(i, datasets[i], total_time);
+        testSingle(i, datasets[i], total_time, algorithm);
     }
     std::cout << "Total time: " << total_time.count() << " s"<< std::endl;
 }
@@ -275,6 +275,9 @@ void testMultiple(int data_index_from, int data_index_to, const std::vector<std:
 int main() {
     std::string filepath = "data/data.txt";
     std::vector<std::vector<Task>> datasets = readData(filepath);
-    testMultiple(110, 120, datasets);
+    int data_from = 0;
+    int data_to = 10;
+    std::cout << "QNEH Results" << std::endl;
+    testMultiple(data_from, data_to, datasets, QNEH);
     return 0;
 }
