@@ -21,9 +21,10 @@ class Task {
 private:
     int id;
     std::vector<int> tpm;
+    int tpm_sum;
 
 public:
-    Task(int id, const std::vector<int>& tpm) : id(id), tpm(tpm) {}
+    Task(int id, const std::vector<int>& tpm, int tpm_sum) : id(id), tpm(tpm), tpm_sum(tpm_sum){}
 
     const std::vector<int>& getTpm() const {
         return tpm;
@@ -31,6 +32,10 @@ public:
 
     int getId() const {
         return id;
+    }
+
+    int getTpmSum() const {
+        return tpm_sum;
     }
 
     void printTask() const {
@@ -83,11 +88,13 @@ std::vector<std::vector<Task>> readData(const std::string& filepath) {
                 } 
                 std::istringstream iss(line);
                 int num;
+                int tpm_sum = 0;
                 std::vector<int> task_tpm;
                 while (iss >> num) {
+                    tpm_sum += num;
                     task_tpm.push_back(num);
                 }
-                current_dataset.emplace_back(counter, task_tpm);
+                current_dataset.emplace_back(counter, task_tpm, tpm_sum);
                 counter++;
             }
         }
@@ -106,8 +113,7 @@ std::vector<int> getTaskInputOrder(const std::vector<Task>& data) {
   // Sort the data in descending order based on the sum of tpm elements
   std::vector<Task> sorted_data = data;
   std::stable_sort(sorted_data.begin(), sorted_data.end(), [](const Task& a, const Task& b) {
-    return std::accumulate(a.getTpm().begin(), a.getTpm().end(), 0) > 
-           std::accumulate(b.getTpm().begin(), b.getTpm().end(), 0);
+    return a.getTpmSum() > b.getTpmSum();
   });
 
   std::vector<int> order;
@@ -251,7 +257,7 @@ int getTotalTime(const std::vector<Task>& data, const std::vector<int>& order){
 int main() {
     std::string filepath = "data/data.txt";
     std::vector<std::vector<Task>> datasets = readData(filepath);
-    int dataset_index = 100;
+    int dataset_index = 120;
     std::vector<Task> data = datasets[dataset_index];
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<int> result = QNEH(data);
