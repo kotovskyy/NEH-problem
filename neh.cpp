@@ -145,9 +145,8 @@ void updateForwardTable(const std::vector<Task>& data,
     }
     for (int i = k; i < order.size(); i++) {
         int t = 0;
-        Task task = data[order[i]];
         for (int m = 0; m < M; m++) {
-            t = std::max(t, prev[m]) + task.getTpm()[m];
+            t = std::max(t, prev[m]) + data[order[i]].getTpm()[m];
             forward[m][order[i]] = t;
             prev[m] = t;
         }
@@ -169,9 +168,8 @@ void updateBackwardTable(const std::vector<Task>& data,
     }
     for (int i = k; i >= 0; i--) {
         int t = 0;
-        Task task = data[order[i]];
         for (int m = M-1; m >= 0; m--) {
-            t = std::max(t, prev[m]) + task.getTpm()[m];
+            t = std::max(t, prev[m]) + data[order[i]].getTpm()[m];
             backward[m][order[i]] = t;
             prev[m] = t;
         }
@@ -188,25 +186,26 @@ int getQNEHCmax(const Task& task,
     int N = order.size();
     int M = task.getTpm().size();
     std::vector<int> task_table(M, 0);
-    std::vector<int> prev(M, 0);
+    std::vector<int> prev;
+    int cmax = 0;
     if (k != 0){
         prev = getMatrixColumn(forward, order[k-1]);
+    } else {
+        prev = std::vector<int>(M, 0);
     }
     for (int m = 0; m < M; m++) {
         t = std::max(t, prev[m]) + task.getTpm()[m];
         task_table[m] = t;
-        prev[m] = t;
+        if (k < N) {
+            int value = task_table[m] + backward[m][order[k]];
+            if (value > cmax){
+                cmax = value;
+            }
+        }
     }
     if (k == N){
         return t;
     } 
-    int cmax = 0;
-    for (int i = 0; i < M; i++){
-        int value = task_table[i] + backward[i][order[k]];
-        if (value > cmax){
-            cmax = value;
-        }
-    }
     return cmax; 
 }
 
