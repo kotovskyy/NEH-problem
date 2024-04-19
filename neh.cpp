@@ -5,6 +5,8 @@
 #include <string>
 #include <algorithm>
 #include <numeric>
+#include <chrono>
+#include <limits>
 
 void printMatrix(const std::vector<std::vector<int>>& matrix) {
     for (const std::vector<int>& row : matrix) {
@@ -154,9 +156,6 @@ void updateBackwardTable(const std::vector<Task>& data,
     if (order.size() == 0) {
         return;
     }
-    // if (k == -1) {
-    //     k = order.size()-1;
-    // }
     int M = data[0].getTpm().size();
     std::vector<int> prev(M, 0);
     if (k != order.size()-1){
@@ -210,15 +209,15 @@ std::vector<int> QNEH(const std::vector<Task>& data) {
     std::vector<int> input_order = getTaskInputOrder(data);
     std::cout << std::endl;
     std::vector<int> order;
-    int index = 0;
     int N_tasks = data.size();
     int M = data[0].getTpm().size();
+    int index = 0;
     std::vector<std::vector<int>> forward(M, std::vector<int>(N_tasks, 0));
     std::vector<std::vector<int>> backward(M, std::vector<int>(N_tasks, 0)); 
 
     for (int t_index : input_order) {
         int N = order.size();
-        int C_max = 9999999; // big number instead of infinity
+        int C_max = std::numeric_limits<int>::max();
         updateForwardTable(data, order, forward, index);
         updateBackwardTable(data, order, backward, index);
         for (int i = 0; i < N+1; i++){
@@ -230,7 +229,6 @@ std::vector<int> QNEH(const std::vector<Task>& data) {
         }
         order.insert(order.begin() + index, t_index);
     }
-
     return order;
 }
 
@@ -253,13 +251,13 @@ int getTotalTime(const std::vector<Task>& data, const std::vector<int>& order){
 int main() {
     std::string filepath = "data/data.txt";
     std::vector<std::vector<Task>> datasets = readData(filepath);
-    int dataset_index = 0;
+    int dataset_index = 100;
     std::vector<Task> data = datasets[dataset_index];
+    auto start = std::chrono::high_resolution_clock::now();
     std::vector<int> result = QNEH(data);
-    for (int i : result) {
-        std::cout << i+1 << " ";
-    }
-    std::cout << std::endl;
-    std::cout << "Total time: " << getTotalTime(data, result) << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end-start;
+    std::cout << "Execution time: " << duration.count() << " seconds"<< std::endl;
+    std::cout << "C_max: " << getTotalTime(data, result) << std::endl;
     return 0;
 }
