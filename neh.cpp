@@ -103,7 +103,7 @@ std::vector<std::vector<Task>> readData(const std::string& filepath) {
 std::vector<int> getTaskInputOrder(const std::vector<Task>& data) {
   // Sort the data in descending order based on the sum of tpm elements
   std::vector<Task> sorted_data = data;
-  std::sort(sorted_data.begin(), sorted_data.end(), [](const Task& a, const Task& b) {
+  std::stable_sort(sorted_data.begin(), sorted_data.end(), [](const Task& a, const Task& b) {
     return std::accumulate(a.getTpm().begin(), a.getTpm().end(), 0) > 
            std::accumulate(b.getTpm().begin(), b.getTpm().end(), 0);
   });
@@ -253,7 +253,7 @@ int getTotalTime(const std::vector<Task>& data, const std::vector<int>& order){
 int main() {
     std::string filepath = "data/data.txt";
     std::vector<std::vector<Task>> datasets = readData(filepath);
-    int dataset_index = 2;
+    int dataset_index = 0;
     std::vector<Task> data = datasets[dataset_index];
     std::vector<int> result = QNEH(data);
     for (int i : result) {
@@ -261,61 +261,5 @@ int main() {
     }
     std::cout << std::endl;
     std::cout << "Total time: " << getTotalTime(data, result) << std::endl;
-    // std::vector<std::vector<int>> matrix = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    // std::vector<int> column = getMatrixColumn(matrix, 2);
-
-    // std::vector<Task> data = {Task(1, {1, 1, 3}),
-    //                           Task(2, {3, 4, 3}), 
-    //                           Task(3, {4, 1, 2}),
-    //                           Task(4, {2, 4, 1}),
-    //                           Task(5, {1, 2, 3})};
-    
-    // std::vector<Task> data = {Task(1, {1, 1, 3}),
-    //                           Task(2, {3, 4, 3}), 
-    //                           Task(3, {4, 1, 2}),
-    //                           Task(4, {2, 4, 1})};
-    
-
-    // std::vector<int> result = QNEH(data);
-
-    // for (int i : result) {
-    //     std::cout << i << " ";
-    // }
-    
-    // std::vector<std::vector<int>> forward(3, std::vector<int>(5, 0));
-    // updateForwardTable(data, {0, 1, 2, 3}, forward);
-    // printMatrix(forward);
-    // updateForwardTable(data, {4, 0, 1, 2, 3}, forward, 0);
-    // printMatrix(forward);
-
-    // std::vector<std::vector<int>> backward(3, std::vector<int>(5, 0));
-    // updateBackwardTable(data, {0, 1, 2, 3}, backward);
-    // printMatrix(backward);
-    // updateBackwardTable(data, {0, 1, 4, 2, 3}, backward, 2);
-    // printMatrix(backward);
-
-    // printMatrix(forward);
-    // printMatrix(backward);
-
-    // updateForwardTable(data, {}, forward, 0);
-    // printMatrix(forward);
-    
-    // updateBackwardTable(data, {}, backward, 0);
-
-    // printMatrix(backward);
-
-    
-
-    // for (int i = 0; i < 3; ++i) {
-    //     for (int j = 0; j < 3; ++j) {
-    //         std::cout << matrix[i][j] << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
-
-    // for (int i : column) {
-    //     std::cout << i << " ";
-    // }
-
     return 0;
 }
