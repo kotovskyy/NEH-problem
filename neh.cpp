@@ -208,9 +208,6 @@ int getQNEHCmax(const Task& task,
 
 std::vector<int> QNEH(const std::vector<Task>& data) {
     std::vector<int> input_order = getTaskInputOrder(data);
-    for (int i : input_order) {
-        std::cout << i << " ";
-    }
     std::cout << std::endl;
     std::vector<int> order;
     int index = 0;
@@ -222,11 +219,8 @@ std::vector<int> QNEH(const std::vector<Task>& data) {
     for (int t_index : input_order) {
         int N = order.size();
         int C_max = 9999999; // big number instead of infinity
-        std::cout << t_index << std::endl;
         updateForwardTable(data, order, forward, index);
-        printMatrix(forward);
         updateBackwardTable(data, order, backward, index);
-        printMatrix(backward);
         for (int i = 0; i < N+1; i++){
             int c = getQNEHCmax(data[t_index], forward, backward, i, order);
             if (c < C_max) {
@@ -237,24 +231,36 @@ std::vector<int> QNEH(const std::vector<Task>& data) {
         order.insert(order.begin() + index, t_index);
     }
 
-    updateForwardTable(data, order, forward, index);
-    updateBackwardTable(data, order, backward, index);
-    printMatrix(forward);
-    printMatrix(backward);
-
-
     return order;
+}
+
+int getTotalTime(const std::vector<Task>& data, const std::vector<int>& order){
+    int N = data.size();
+    int M = data[0].getTpm().size();
+    int cmax = 0;
+    std::vector<int> prev(M, 0);
+    for (int t_index : order) {
+        int t = 0;
+        for (int m = 0; m < M; m++) {
+            t = std::max(t, prev[m]) + data[t_index].getTpm()[m];
+            prev[m] = t;
+            cmax = t;
+        }
+    }
+    return cmax;
 }
 
 int main() {
     std::string filepath = "data/data.txt";
     std::vector<std::vector<Task>> datasets = readData(filepath);
-    int dataset_index = 0;
-    // std::vector<Task> data = datasets[dataset_index];
-    // std::vector<int> result = QNEH(data);
-    // for (int i : result) {
-    //     std::cout << i << " ";
-    // }
+    int dataset_index = 2;
+    std::vector<Task> data = datasets[dataset_index];
+    std::vector<int> result = QNEH(data);
+    for (int i : result) {
+        std::cout << i+1 << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "Total time: " << getTotalTime(data, result) << std::endl;
     // std::vector<std::vector<int>> matrix = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
     // std::vector<int> column = getMatrixColumn(matrix, 2);
 
@@ -264,17 +270,17 @@ int main() {
     //                           Task(4, {2, 4, 1}),
     //                           Task(5, {1, 2, 3})};
     
-    std::vector<Task> data = {Task(1, {1, 1, 3}),
-                              Task(2, {3, 4, 3}), 
-                              Task(3, {4, 1, 2}),
-                              Task(4, {2, 4, 1})};
+    // std::vector<Task> data = {Task(1, {1, 1, 3}),
+    //                           Task(2, {3, 4, 3}), 
+    //                           Task(3, {4, 1, 2}),
+    //                           Task(4, {2, 4, 1})};
     
 
-    std::vector<int> result = QNEH(data);
+    // std::vector<int> result = QNEH(data);
 
-    for (int i : result) {
-        std::cout << i << " ";
-    }
+    // for (int i : result) {
+    //     std::cout << i << " ";
+    // }
     
     // std::vector<std::vector<int>> forward(3, std::vector<int>(5, 0));
     // updateForwardTable(data, {0, 1, 2, 3}, forward);
