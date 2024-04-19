@@ -212,7 +212,6 @@ int getQNEHCmax(const Task& task,
 
 std::vector<int> QNEH(const std::vector<Task>& data) {
     std::vector<int> input_order = getTaskInputOrder(data);
-    std::cout << std::endl;
     std::vector<int> order;
     int N_tasks = data.size();
     int M = data[0].getTpm().size();
@@ -253,16 +252,29 @@ int getTotalTime(const std::vector<Task>& data, const std::vector<int>& order){
     return cmax;
 }
 
-int main() {
-    std::string filepath = "data/data.txt";
-    std::vector<std::vector<Task>> datasets = readData(filepath);
-    int dataset_index = 120;
-    std::vector<Task> data = datasets[dataset_index];
+void testSingle(int data_index, const std::vector<Task>& data, std::chrono::duration<double>& total_time) {
+    printf("data.%03d : ", data_index);
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<int> result = QNEH(data);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end-start;
-    std::cout << "Execution time: " << duration.count() << " seconds"<< std::endl;
-    std::cout << "C_max: " << getTotalTime(data, result) << std::endl;
+    
+    total_time += duration;
+    std::cout << getTotalTime(data, result) << " ";
+    std::cout << duration.count() << " s"<< std::endl;
+}
+
+void testMultiple(int data_index_from, int data_index_to, const std::vector<std::vector<Task>>& datasets) {
+    std::chrono::duration<double> total_time = std::chrono::duration<double>::zero();
+    for (int i = data_index_from; i <= data_index_to; i++) {
+        testSingle(i, datasets[i], total_time);
+    }
+    std::cout << "Total time: " << total_time.count() << " s"<< std::endl;
+}
+
+int main() {
+    std::string filepath = "data/data.txt";
+    std::vector<std::vector<Task>> datasets = readData(filepath);
+    testMultiple(110, 120, datasets);
     return 0;
 }
