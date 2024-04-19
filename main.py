@@ -4,9 +4,10 @@ import math
 
 
 class Task:
-    def __init__(self, id: int, tpm: List[int]) -> None:
+    def __init__(self, id: int, tpm: List[int], tpm_sum: int) -> None:
         self.id = id
         self.tpm = tpm
+        self.tpm_sum = tpm_sum
     
     def __repr__(self) -> str:
         return f"id: {self.id} | {[time for time in self.tpm]}"
@@ -59,7 +60,8 @@ def readData(filepath: str) -> dict[str: List[Task]]:
                     if counter == 0:
                         counter += 1    
                         continue
-                    newTask = Task(counter, [int(item) for item in line.split(" ")])
+                    tpm = [int(item) for item in line.split(" ")]
+                    newTask = Task(counter, tpm, np.sum(tpm))
                     data[current_section].append(newTask)
                     counter += 1 
     return data
@@ -119,32 +121,33 @@ def QNEHTotalTime(task, forward, backward, N, M, i):
 
 
 def _getTaskInputOrder(data):
-    return [t.id-1 for t in sorted(data, key=lambda x: np.sum(x.tpm), reverse=True)]
+    return [t.id-1 for t in sorted(data, key=lambda x: x.tpm_sum, reverse=True)]
 
 
 def _createForwardTable(data, order, forward, k=0):
     M = len(data[0].tpm)
-    prev = np.zeros(M) if k == 0 else np.copy(forward[:, order[k-1]])
+    prev = np.zeros(M)
+    if k != 0:
+        prev = np.copy(forward[:, order[k-1]])
     for i in range(k, len(order)):
         t = 0
-        task = data[order[i]]
         for m in range(M):
-            task_time = task.tpm[m]
-            forward[m, order[i]] = max(prev[m], t) + task_time
-            prev[m] = t = forward[m, order[i]]
-    
+            t = max(prev[m], t) + data[order[i]].tpm[m]
+            prev[m] = forward[m, order[i]] = t
     return forward
 
-def _createBackwardTable(data, order, backward, k=0):
+def _createBackwardTable(data, order, backward, k=-1):
+    if len(order) == 0:
+        return backward
     M = len(data[0].tpm)
-    prev = np.zeros(M) if k != len(data) else np.copy(backward[:, order[k+1]])
-    for i in range(len(order)-1, k-1, -1):
+    prev = np.zeros(M) 
+    if k != len(order)-1:
+        prev = np.copy(backward[:, order[k+1]])
+    for i in range(k, -1, -1):
         t = 0
-        task = data[order[i]]
         for m in range(M-1, -1, -1):
-            task_time = task.tpm[m]
-            backward[m, order[i]] = max(prev[m], t) + task_time
-            prev[m] = t = backward[m, order[i]]
+            t = max(prev[m], t) + data[order[i]].tpm[m]
+            prev[m] = backward[m, order[i]] = t
     
     return backward
 
@@ -154,34 +157,34 @@ def _getQHENcmax(task, forward, backward, k, order):
     N = len(order)
     M = len(task.tpm)
     task_table = np.zeros(M)
-    prev = np.zeros(M) if k == 0 else forward[:, order[k-1]]
+    prev = np.zeros(M)
+    if k != 0:
+        prev = forward[:, order[k-1]]
     for m in range(M):
-            task_time = task.tpm[m]
-            task_table[m] = max(prev[m], t) + task_time
-            prev[m] = t = task_table[m]
+            t = max(prev[m], t) + task.tpm[m]
+            task_table[m] = t
     
-    if k < N:
-        return np.max(task_table + backward[:, order[k]])
-    return t
+    if k == N:
+        return t
+    return np.max(task_table + backward[:, order[k]])
 
 @calculate_time
 def QNEH(data):
     input_order = _getTaskInputOrder(data)
     order, index = [], 0
     M = len(data[0].tpm)
+    N_tasks = len(data)
     
-    forward = np.zeros((M, len(data)), dtype=np.int32)
-    backward = np.zeros((M, len(data)), dtype=np.int32)
+    forward = np.zeros((M, N_tasks), dtype=np.int32)
+    backward = np.zeros((M, N_tasks), dtype=np.int32)
     
     for t_index in input_order:
         N = len(order) 
         C_max = math.inf
         forward = _createForwardTable(data, order, forward, index)
         backward = _createBackwardTable(data, order, backward, index)
-        # forward, backward = _createCmaxTable(data[order], N, M)
         for i in range(N+1):
             c = _getQHENcmax(data[t_index], forward, backward, i, order)
-            # c = QNEHTotalTime(data[t_index], forward, backward, N, M, i)
             if c < C_max:
                 C_max, index = c, i
         order.insert(index, t_index)
@@ -216,32 +219,9 @@ def testSolution(data, datasetName: str, func) -> None:
 
 
 def main():
-    dataName = "data.000"
+    dataName = "data.100"
     data = readData("data/data.txt")
     testSolution(data, dataName, QNEH)
-    # data = np.array([Task(1, [1, 1, 3]),
-    #                  Task(2, [3, 4, 3]),
-    #                  Task(3, [4, 1, 2]),
-    #                  Task(4, [2, 4, 1]),
-    #                  Task(5, [1, 2, 3])])
-    # print(_createCmaxTable(data, 4, 3))
-    # order = QNEH(data)
-    # print(f"Total time: {getTotalTime(np.asarray(data)[order])}")
-    # printOrder(order)
-    
-    # forward = np.array([[ 1,  4,  8, 10, 0],
-    #             [ 2, 8, 9, 14, 0],
-    #             [ 5, 11, 13, 15, 0]])
-    # forward = np.zeros((3, 5))
-    # backward = np.zeros((3, 5))
-    
-    # print(_createForwardTable(data, [0, 1, 2, 3], forward))
-    # print(_createBackwardTable(data, [0, 1, 2, 3], backward))
-    # print(_getQHENcmax(Task(4, [1, 2, 3]), forward, backward, 2, [0, 1, 2, 3]))
-    # print(_createForwardTable(data, [0, 1, 4, 2, 3], forward, 2))
-    
-    # print(_createBackwardTable(data, [0, 1, 4, 2, 3], backward, 2))
-    
     
     
 if __name__ == "__main__":
