@@ -126,10 +126,10 @@ std::vector<int> getTaskInputOrder(const std::vector<Task>& data) {
 }
 
 std::vector<int> getMatrixColumn(const std::vector<std::vector<int>>& matrix, int col){
-    std::vector<int> column;
     int M = matrix.size();
+    std::vector<int> column(M, 0);
     for (int i = 0; i < M; ++i){
-        column.push_back(matrix[i][col]);
+        column[i] = matrix[i][col];
     }
     return column;
 }
@@ -299,11 +299,11 @@ void testMultiple(int data_index_from, int data_index_to, const std::vector<std:
 int main() {
     std::string filepath = "data/data.txt";
     std::vector<std::vector<Task>> datasets = readData(filepath);
-    int data_from = 110;
+    int data_from = 0;
     int data_to = 120;
     std::cout << "QNEH Results" << std::endl;
     testMultiple(data_from, data_to, datasets, QNEH);
-    std::cout << "NEH Results" << std::endl;
-    testMultiple(data_from, data_to, datasets, NEH);
+    // std::cout << "NEH Results" << std::endl;
+    // testMultiple(data_from, data_to, datasets, NEH);
     return 0;
 }
