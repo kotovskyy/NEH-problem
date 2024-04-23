@@ -303,7 +303,7 @@ int main() {
     int data_to = 120;
     std::cout << "QNEH Results" << std::endl;
     testMultiple(data_from, data_to, datasets, QNEH);
-    // std::cout << "NEH Results" << std::endl;
-    // testMultiple(data_from, data_to, datasets, NEH);
+    std::cout << "NEH Results" << std::endl;
+    testMultiple(data_from, data_to, datasets, NEH);
     return 0;
 }
