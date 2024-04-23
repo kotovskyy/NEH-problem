@@ -139,9 +139,11 @@ void updateForwardTable(const std::vector<Task>& data,
                         std::vector<std::vector<int>>& forward,
                         int k=0){
     int M = data[0].getTpm().size();
-    std::vector<int> prev(M, 0);
+    std::vector<int> prev;
     if (k != 0){
         prev = getMatrixColumn(forward, order[k-1]);
+    } else {
+        prev = std::vector<int>(M, 0);
     }
     for (int i = k; i < order.size(); i++) {
         int t = 0;
@@ -162,9 +164,11 @@ void updateBackwardTable(const std::vector<Task>& data,
         return;
     }
     int M = data[0].getTpm().size();
-    std::vector<int> prev(M, 0);
+    std::vector<int> prev;
     if (k != order.size()-1){
         prev = getMatrixColumn(backward, order[k+1]);
+    } else {
+        prev = std::vector<int>(M, 0);
     }
     for (int i = k; i >= 0; i--) {
         int t = 0;
@@ -204,7 +208,7 @@ int getQNEHCmax(const Task& task,
         }
     }
     if (k == N){
-        return t;
+        return task_table[M-1];
     } 
     return cmax; 
 }
@@ -219,8 +223,8 @@ std::vector<int> QNEH(const std::vector<Task>& data) {
     std::vector<std::vector<int>> forward(M, std::vector<int>(N_tasks, 0));
     std::vector<std::vector<int>> backward(M, std::vector<int>(N_tasks, 0)); 
 
+    int N = 0;
     for (int t_index : input_order) {
-        int N = order.size();
         int C_max = std::numeric_limits<int>::max();
         updateForwardTable(data, order, forward, index);
         updateBackwardTable(data, order, backward, index);
@@ -232,6 +236,7 @@ std::vector<int> QNEH(const std::vector<Task>& data) {
             }
         }
         order.insert(order.begin() + index, t_index);
+        N++;
     }
     return order;
 }
@@ -255,8 +260,8 @@ int getTotalTime(const std::vector<Task>& data, const std::vector<int>& order){
 std::vector<int> NEH(const std::vector<Task>& data) {
     std::vector<int> input_order = getTaskInputOrder(data);
     std::vector<int> order;
-    int N_tasks = data.size();
     int M = data[0].getTpm().size();
+    int N_tasks = data.size();
     int index = 0;
 
     for (int t_index : input_order) {
