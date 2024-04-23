@@ -1,6 +1,7 @@
 from typing import List
 import numpy as np
 import math
+import time
 
 
 class Task:
@@ -168,7 +169,7 @@ def _getQHENcmax(task, forward, backward, k, order):
         return t
     return np.max(task_table + backward[:, order[k]])
 
-@calculate_time
+# @calculate_time
 def QNEH(data):
     input_order = _getTaskInputOrder(data)
     order, index = [], 0
@@ -190,7 +191,7 @@ def QNEH(data):
         order.insert(index, t_index)
     return order
     
-@calculate_time
+# @calculate_time
 def NEH(data):
     task_totals = _getTaskInputOrder(data)
     order, index = [], None
@@ -212,16 +213,30 @@ def printOrder(order):
 
 def testSolution(data, datasetName: str, func) -> None:
     data = np.asarray(data[datasetName])
-    print(f"DATASET : {datasetName}")
+    start = time.time()
     order = func(data)
-    print(f"Min Cmax: {getTotalTime(data[order])}")
-    printOrder(order)
+    end = time.time()
+    totalTime = end - start
+    print(f"{datasetName} {getTotalTime(data[order])} {totalTime:.5} s")
+    return totalTime
+    
+
+def testMultiple(data, func):
+    total_time = 0
+    for key in data:
+        total_time += testSolution(data, key, func)
+    print(f"Total time: {total_time} s")
+    
 
 
 def main():
-    dataName = "data.100"
+    # dataName = "data.100"
     data = readData("data/data.txt")
-    testSolution(data, dataName, QNEH)
+    print("QNEH RESULTS:")
+    testMultiple(data, QNEH)
+    print("==========================")
+    print("NEH RESULTS:")
+    testMultiple(data, NEH)
     
     
 if __name__ == "__main__":
